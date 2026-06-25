@@ -4,6 +4,10 @@ A collection of custom [Ghostty](https://ghostty.org/) terminal shaders, authore
 
 Ghostty supports custom GLSL fragment shaders that run on the terminal's rendered output every frame. This repo collects the shaders I've built for it. Each shader is a single, self-contained `.glsl` file written in Ghostty's ShaderToy-compatible format, with tunable constants documented at the top.
 
+## AI implementation note
+
+All shader implementations in this project were automatically learned and improved by AI based on existing shaders found online. The primary models used are OpenAI GPT-5.5 Extra High and [ZAI GLM 5.2 Max](https://z.ai/subscribe?ic=LGCYU9JDKH).
+
 ## Shaders
 
 | Shader           | File                                       | Description                                                                                                                                                                                                                                                                                        |

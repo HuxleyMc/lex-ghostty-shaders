@@ -17,6 +17,7 @@ All shader implementations in this project were automatically learned and improv
 | **Fire Embers** | [`fire_embers.glsl`](./fire_embers.glsl) | A subtle ambient fire shader tuned for terminal legibility. A bottom-weighted ember bed adds warm glow, sparse procedural sparks drift upward, and mild heat-haze refraction fades out before it reaches most of the text. Always in motion, no cursor coupling. |
 | **Matrix Rain** | [`matrix_rain.glsl`](./matrix_rain.glsl) | A subtle Matrix-inspired falling-code overlay. Sparse hashed columns drift downward with brighter leading heads and fading trails, while procedural rectangular glyph fragments avoid font assets and keep terminal text readable. Wakes on cursor changes such as typing, then fades out when idle. |
 | **Cursor Sparks** | [`cursor_sparks.glsl`](./cursor_sparks.glsl) | An electric-blue cursor lightning effect. Each cursor change creates a compact glow, soft halo, and short jagged bolt branches from the cursor; fast typing keeps the burst active, while idle terminals fade back to normal. Large cursor jumps are damped to avoid oversized flashes. |
+| **Kawaii Sparkles** | [`kawaii_sparkles.glsl`](./kawaii_sparkles.glsl) | A pastel cursor-reactive burst with soft blush glow, tiny hearts, four-point sparkles, and faint bubbles. Typing keeps the cute decorations active near the cursor; idle terminals fade back to normal, and large cursor jumps are damped. |
 | **Aurora Veil** | [`aurora_veil.glsl`](./aurora_veil.glsl) | A soft ambient aurora overlay. Layered cyan, green, and violet ribbons drift near the top third of the terminal with a faint tint and very light refraction, keeping text readability first. Always in motion, no cursor coupling. |
 | **Ink Bloom** | [`ink_bloom.glsl`](./ink_bloom.glsl) | A cursor-reactive ink/color bloom. Each cursor change emits one expanding radial bloom from the cursor; fast typing keeps fresh blooms active, while large cursor jumps are damped through the previous cursor position. |
 | **CRT Phosphor Bloom** | [`crt_phosphor_bloom.glsl`](./crt_phosphor_bloom.glsl) | A bold CRT pass with strong scanlines, phosphor slot tint, local brightness bloom, red/blue pixel separation, static tube grain, controlled phosphor flicker, glass glow, mild barrel curvature, and tube edge darkening. |
@@ -39,7 +40,7 @@ All shader implementations in this project were automatically learned and improv
 
    ```sh
    mkdir -p ~/.config/ghostty/shaders/
-   cp lex-ghostty-shaders/water_ripple.glsl lex-ghostty-shaders/water_caustic.glsl lex-ghostty-shaders/fire_embers.glsl lex-ghostty-shaders/matrix_rain.glsl lex-ghostty-shaders/cursor_sparks.glsl lex-ghostty-shaders/aurora_veil.glsl lex-ghostty-shaders/ink_bloom.glsl lex-ghostty-shaders/crt_phosphor_bloom.glsl ~/.config/ghostty/shaders/
+   cp lex-ghostty-shaders/water_ripple.glsl lex-ghostty-shaders/water_caustic.glsl lex-ghostty-shaders/fire_embers.glsl lex-ghostty-shaders/matrix_rain.glsl lex-ghostty-shaders/cursor_sparks.glsl lex-ghostty-shaders/kawaii_sparkles.glsl lex-ghostty-shaders/aurora_veil.glsl lex-ghostty-shaders/ink_bloom.glsl lex-ghostty-shaders/crt_phosphor_bloom.glsl ~/.config/ghostty/shaders/
    ```
 
 ## Enabling a shader in Ghostty
@@ -142,6 +143,21 @@ For **Cursor Sparks**, the most useful knobs are:
 | `BRANCH_INTENSITY`    | Brightness of short side branches compared with main bolts.                           |
 | `FLICKER_INTENSITY`   | Per-frame brightness flicker during an active strike.                                 |
 | `BOLT_COUNT`          | Number of procedural bolt directions in each burst.                                   |
+
+For **Kawaii Sparkles**, the most useful knobs are:
+
+| Knob                  | What it controls                                                                      |
+| --------------------- | ------------------------------------------------------------------------------------- |
+| `ACTIVITY_LIFE`       | How long hearts, sparkles, bubbles, and glow stay visible after cursor movement.       |
+| `ACTIVITY_FADE_POWER` | Shape of the idle fade-out. Higher = fades more sharply near the end.                 |
+| `GLOW_RADIUS`         | Radius of the soft pastel halo around the cursor.                                     |
+| `GLOW_INTENSITY`      | Strength of the blush/cyan cursor glow. Lower = more legible.                         |
+| `HEART_COUNT`         | Number of procedural hearts emitted around the cursor.                                |
+| `HEART_INTENSITY`     | Brightness of the pastel heart fills.                                                 |
+| `SPARKLE_COUNT`       | Number of four-point twinkles in each burst.                                          |
+| `SPARKLE_INTENSITY`   | Brightness of sparkle cores and rays.                                                 |
+| `BUBBLE_COUNT`        | Number of faint bubbles drifting outward and upward.                                  |
+| `BUBBLE_INTENSITY`    | Brightness of bubble rims and glints.                                                 |
 
 For **Aurora Veil**, the most useful knobs are:
 

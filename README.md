@@ -17,6 +17,9 @@ All shader implementations in this project were automatically learned and improv
 | **Fire Embers** | [`fire_embers.glsl`](./fire_embers.glsl) | A subtle ambient fire shader tuned for terminal legibility. A bottom-weighted ember bed adds warm glow, sparse procedural sparks drift upward, and mild heat-haze refraction fades out before it reaches most of the text. Always in motion, no cursor coupling. |
 | **Matrix Rain** | [`matrix_rain.glsl`](./matrix_rain.glsl) | A subtle Matrix-inspired falling-code overlay. Sparse hashed columns drift downward with brighter leading heads and fading trails, while procedural rectangular glyph fragments avoid font assets and keep terminal text readable. Wakes on cursor changes such as typing, then fades out when idle. |
 | **Cursor Sparks** | [`cursor_sparks.glsl`](./cursor_sparks.glsl) | An electric-blue cursor lightning effect. Each cursor change creates a compact glow, soft halo, and short jagged bolt branches from the cursor; fast typing keeps the burst active, while idle terminals fade back to normal. Large cursor jumps are damped to avoid oversized flashes. |
+| **Aurora Veil** | [`aurora_veil.glsl`](./aurora_veil.glsl) | A soft ambient aurora overlay. Layered cyan, green, and violet ribbons drift near the top third of the terminal with a faint tint and very light refraction, keeping text readability first. Always in motion, no cursor coupling. |
+| **Ink Bloom** | [`ink_bloom.glsl`](./ink_bloom.glsl) | A cursor-reactive ink/color bloom. Each cursor change emits one expanding radial bloom from the cursor; fast typing keeps fresh blooms active, while large cursor jumps are damped through the previous cursor position. |
+| **CRT Phosphor Bloom** | [`crt_phosphor_bloom.glsl`](./crt_phosphor_bloom.glsl) | A bold CRT pass with strong scanlines, phosphor slot tint, local brightness bloom, red/blue pixel separation, static tube grain, controlled phosphor flicker, glass glow, mild barrel curvature, and tube edge darkening. |
 
 > **About the Water Ripple "stateless" design.** Ghostty custom shaders are stateless (ShaderToy format) — the GPU carries no per-frame state, and only `iChannel0` (the terminal image) plus built-in uniforms are available. This shader builds its dynamic effect purely from `iTime` and `iTimeCursorChange` (the timestamp of the most recent cursor change, which fires per keystroke and is not retriggered by cursor blink). Because only the single latest keystroke is timestamped, at most one pebble wave train is active at a time; the ambient field plus the wave train's many rings provide the "interacting ripples" feel within that constraint. See the shader's header comment for the full explanation and the list of tunable knobs.
 
@@ -36,7 +39,7 @@ All shader implementations in this project were automatically learned and improv
 
    ```sh
    mkdir -p ~/.config/ghostty/shaders/
-   cp lex-ghostty-shaders/water_ripple.glsl lex-ghostty-shaders/water_caustic.glsl lex-ghostty-shaders/fire_embers.glsl lex-ghostty-shaders/matrix_rain.glsl lex-ghostty-shaders/cursor_sparks.glsl ~/.config/ghostty/shaders/
+   cp lex-ghostty-shaders/water_ripple.glsl lex-ghostty-shaders/water_caustic.glsl lex-ghostty-shaders/fire_embers.glsl lex-ghostty-shaders/matrix_rain.glsl lex-ghostty-shaders/cursor_sparks.glsl lex-ghostty-shaders/aurora_veil.glsl lex-ghostty-shaders/ink_bloom.glsl lex-ghostty-shaders/crt_phosphor_bloom.glsl ~/.config/ghostty/shaders/
    ```
 
 ## Enabling a shader in Ghostty
@@ -139,6 +142,46 @@ For **Cursor Sparks**, the most useful knobs are:
 | `BRANCH_INTENSITY`    | Brightness of short side branches compared with main bolts.                           |
 | `FLICKER_INTENSITY`   | Per-frame brightness flicker during an active strike.                                 |
 | `BOLT_COUNT`          | Number of procedural bolt directions in each burst.                                   |
+
+For **Aurora Veil**, the most useful knobs are:
+
+| Knob               | What it controls                                                                      |
+| ------------------ | ------------------------------------------------------------------------------------- |
+| `AURORA_HEIGHT`    | Vertical reach of the aurora from the top of the terminal.                            |
+| `RIBBON_INTENSITY` | Brightness added by the colored ribbon bands. Lower = more legible.                   |
+| `DRIFT_SPEED`      | How quickly the aurora curtains move laterally over time.                             |
+| `RIBBON_SCALE`     | Pattern scale of the folds. Higher = tighter, more frequent ribbon bends.             |
+| `TINT_STRENGTH`    | Strength of the faint top-area color cast behind the brighter bands.                  |
+| `REFRACTION`       | How strongly aurora gradients distort the terminal image.                             |
+
+For **Ink Bloom**, the most useful knobs are:
+
+| Knob             | What it controls                                                                        |
+| ---------------- | --------------------------------------------------------------------------------------- |
+| `BLOOM_LIFE`     | How long each cursor-triggered bloom remains visible.                                   |
+| `BLOOM_RADIUS`   | Final radius of the expanding ink bloom.                                                |
+| `INK_INTENSITY`  | Strength of the added bloom color and light. Lower = more legible.                      |
+| `EDGE_SOFTNESS`  | Softness of the expanding bloom edge. Higher = hazier, lower = sharper ring.            |
+| `COLOR_SHIFT`    | Default palette balance between blue and magenta ink.                                   |
+| `JUMP_DAMPING`   | How much large cursor jumps are reduced compared with local typing-style cursor moves.  |
+
+For **CRT Phosphor Bloom**, the most useful knobs are:
+
+| Knob                | What it controls                                                                      |
+| ------------------- | ------------------------------------------------------------------------------------- |
+| `SCANLINE_STRENGTH` | Darkness of the horizontal scanline pattern.                                          |
+| `BLOOM_INTENSITY`   | Strength of the local brightness halo around bright terminal pixels.                  |
+| `PHOSPHOR_TINT`     | Amount of RGB/phosphor color tint and slot-mask color.                                |
+| `VIGNETTE`          | Edge darkening around the terminal viewport.                                          |
+| `PIXEL_SHARPNESS`   | Balance between neighbor smoothing and crisp center pixels. Higher = sharper text.    |
+| `GRAIN_STRENGTH`    | Static subpixel/tube texture strength. Higher = more visible CRT grain.              |
+| `FLICKER_STRENGTH`  | Controlled phosphor shimmer strength. Higher = more visible CRT flicker.             |
+| `FLICKER_SPEED`     | Flicker cadence in updates per second.                                               |
+| `GLASS_TINT`        | Stable low tube glow that makes the CRT treatment visible on dark backgrounds.        |
+| `MASK_VISIBILITY`   | Shadow-mask contrast that does not depend only on bright text pixels.                 |
+| `CHROMATIC_OFFSET`  | Red/blue sample offset in physical pixels. Higher = more color fringing.             |
+| `CURVATURE`         | Mild barrel curvature that makes the terminal plane read more like a CRT tube.        |
+| `TUBE_EDGE`         | Extra darkening near curved screen edges.                                             |
 
 ## If you like this project
 

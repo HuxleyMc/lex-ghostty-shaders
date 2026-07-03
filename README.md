@@ -15,6 +15,7 @@ All shader implementations in this project were automatically learned and improv
 | **Water Ripple** | [`water_ripple.glsl`](./water_ripple.glsl) | Renders the terminal behind a calm water surface. A subtle ambient undulation is always present, and each keystroke drops a "pebble" at the cursor — a damped radial wave train that expands outward and fades to calm. Faster typing keeps fresh ripples near the cursor; idle water stays still. |
 | **Water Caustic** | [`water_caustic.glsl`](./water_caustic.glsl) | A lit-water caustic shimmer over the terminal, ported from [Paper Design's "Water"](https://shaders.paper.design/water). A recursive fractal-noise caustic field (zozuar's algorithm) distorts the texture lookup, a simplex-noise wave term adds slow lateral drift, and a soft highlight tint follows the caustic web. Always in motion, no cursor coupling. |
 | **Fire Embers** | [`fire_embers.glsl`](./fire_embers.glsl) | A subtle ambient fire shader tuned for terminal legibility. A bottom-weighted ember bed adds warm glow, sparse procedural sparks drift upward, and mild heat-haze refraction fades out before it reaches most of the text. Always in motion, no cursor coupling. |
+| **Matrix Rain** | [`matrix_rain.glsl`](./matrix_rain.glsl) | A subtle Matrix-inspired falling-code overlay. Sparse hashed columns drift downward with brighter leading heads and fading trails, while procedural rectangular glyph fragments avoid font assets and keep terminal text readable. Wakes on cursor changes such as typing, then fades out when idle. |
 
 > **About the Water Ripple "stateless" design.** Ghostty custom shaders are stateless (ShaderToy format) — the GPU carries no per-frame state, and only `iChannel0` (the terminal image) plus built-in uniforms are available. This shader builds its dynamic effect purely from `iTime` and `iTimeCursorChange` (the timestamp of the most recent cursor change, which fires per keystroke and is not retriggered by cursor blink). Because only the single latest keystroke is timestamped, at most one pebble wave train is active at a time; the ambient field plus the wave train's many rings provide the "interacting ripples" feel within that constraint. See the shader's header comment for the full explanation and the list of tunable knobs.
 
@@ -34,7 +35,7 @@ All shader implementations in this project were automatically learned and improv
 
    ```sh
    mkdir -p ~/.config/ghostty/shaders/
-   cp lex-ghostty-shaders/water_ripple.glsl lex-ghostty-shaders/water_caustic.glsl lex-ghostty-shaders/fire_embers.glsl ~/.config/ghostty/shaders/
+   cp lex-ghostty-shaders/water_ripple.glsl lex-ghostty-shaders/water_caustic.glsl lex-ghostty-shaders/fire_embers.glsl lex-ghostty-shaders/matrix_rain.glsl ~/.config/ghostty/shaders/
    ```
 
 ## Enabling a shader in Ghostty
@@ -106,6 +107,20 @@ For **Fire Embers**, the most useful knobs are:
 | `HEAT_SCALE`       | Size of the heat-haze cells. Higher = finer, tighter shimmer.                         |
 | `SPARK_DENSITY`    | Number of procedural spark lanes across the terminal.                                 |
 | `SPARK_BRIGHTNESS` | Brightness of the sparse rising sparks.                                               |
+
+For **Matrix Rain**, the most useful knobs are:
+
+| Knob                  | What it controls                                                                      |
+| --------------------- | ------------------------------------------------------------------------------------- |
+| `RAIN_DENSITY`        | Fraction of columns that can emit falling glyph fragments.                            |
+| `FALL_SPEED`          | Base downward speed of the rain streams.                                              |
+| `GLYPH_SCALE`         | Size of the procedural grid. Higher = smaller, denser glyph cells.                    |
+| `DARKEN_STRENGTH`     | Overall darkening applied while the activity-gated Matrix effect is visible.          |
+| `GLOW_INTENSITY`      | Brightness added by the green rain fragments. Lower = more legible.                  |
+| `TRAIL_FADE`          | How quickly each stream fades behind the bright leading head.                         |
+| `GREEN_TINT_STRENGTH` | Strength of the low green cast while the Matrix effect is visible.                    |
+| `ACTIVITY_LIFE`       | How long the Matrix effect stays visible after typing or cursor movement.             |
+| `ACTIVITY_FADE_POWER` | Shape of the idle fade-out. Higher = fades more sharply near the end.                 |
 
 ## If you like this project
 

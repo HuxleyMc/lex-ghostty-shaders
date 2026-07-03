@@ -21,6 +21,7 @@ All shader implementations in this project were automatically learned and improv
 | **Aurora Veil** | [`aurora_veil.glsl`](./aurora_veil.glsl) | A soft ambient aurora overlay. Layered cyan, green, and violet ribbons drift near the top third of the terminal with a faint tint and very light refraction, keeping text readability first. Always in motion, no cursor coupling. |
 | **Ink Bloom** | [`ink_bloom.glsl`](./ink_bloom.glsl) | A cursor-reactive ink/color bloom. Each cursor change emits one expanding radial bloom from the cursor; fast typing keeps fresh blooms active, while large cursor jumps are damped through the previous cursor position. |
 | **CRT Phosphor Bloom** | [`crt_phosphor_bloom.glsl`](./crt_phosphor_bloom.glsl) | A bold CRT pass with strong scanlines, phosphor slot tint, local brightness bloom, red/blue pixel separation, static tube grain, controlled phosphor flicker, glass glow, mild barrel curvature, and tube edge darkening. |
+| **Neuro Noise** | [`neuro_noise.glsl`](./neuro_noise.glsl) | A glowing web of fluid lines and soft intersections as the terminal background, ported from [Paper Design's "Neuro Noise"](https://shaders.paper.design/neuro-noise). 15 rotated, time-drifting octaves (zozuar's algorithm) form the structure; the pattern paints only the empty background, so glyphs stay crisp. |
 
 > **About the Water Ripple "stateless" design.** Ghostty custom shaders are stateless (ShaderToy format) — the GPU carries no per-frame state, and only `iChannel0` (the terminal image) plus built-in uniforms are available. This shader builds its dynamic effect purely from `iTime` and `iTimeCursorChange` (the timestamp of the most recent cursor change, which fires per keystroke and is not retriggered by cursor blink). Because only the single latest keystroke is timestamped, at most one pebble wave train is active at a time; the ambient field plus the wave train's many rings provide the "interacting ripples" feel within that constraint. See the shader's header comment for the full explanation and the list of tunable knobs.
 
@@ -40,7 +41,7 @@ All shader implementations in this project were automatically learned and improv
 
    ```sh
    mkdir -p ~/.config/ghostty/shaders/
-   cp lex-ghostty-shaders/water_ripple.glsl lex-ghostty-shaders/water_caustic.glsl lex-ghostty-shaders/fire_embers.glsl lex-ghostty-shaders/matrix_rain.glsl lex-ghostty-shaders/cursor_sparks.glsl lex-ghostty-shaders/kawaii_sparkles.glsl lex-ghostty-shaders/aurora_veil.glsl lex-ghostty-shaders/ink_bloom.glsl lex-ghostty-shaders/crt_phosphor_bloom.glsl ~/.config/ghostty/shaders/
+   cp lex-ghostty-shaders/water_ripple.glsl lex-ghostty-shaders/water_caustic.glsl lex-ghostty-shaders/fire_embers.glsl lex-ghostty-shaders/matrix_rain.glsl lex-ghostty-shaders/cursor_sparks.glsl lex-ghostty-shaders/kawaii_sparkles.glsl lex-ghostty-shaders/aurora_veil.glsl lex-ghostty-shaders/ink_bloom.glsl lex-ghostty-shaders/crt_phosphor_bloom.glsl lex-ghostty-shaders/neuro_noise.glsl ~/.config/ghostty/shaders/
    ```
 
 ## Enabling a shader in Ghostty
@@ -99,6 +100,16 @@ For **Water Caustic**, the most useful knobs are (defaults match the upstream "D
 | `LAYERING`    | Strength of the second, finer/slower caustic layer.                                           |
 | `EDGES`       | How much caustic distortion concentrates near the edges vs. uniformly across the surface.     |
 | `SIZE`        | Pattern scale (caustic cell size). Higher = tighter webbing.                                  |
+
+For **Neuro Noise**, the most useful knobs are:
+
+| Knob                | What it controls                                                                      |
+| ------------------- | ------------------------------------------------------------------------------------- |
+| `BRIGHTNESS`        | Luminosity of the bright crossing points.                                             |
+| `CONTRAST`          | Sharpness of the bright-dark transition.                                              |
+| `PATTERN_SCALE`     | Density of the web pattern. Smaller = denser webbing.                                 |
+| `COLOR_CYCLE_SPEED` | Speed of the rotating neon palette. Lower = slower.                                   |
+| `NEON_0`-`NEON_5`   | Palette stops used for the cycling mid-color.                                         |
 
 For **Fire Embers**, the most useful knobs are:
 

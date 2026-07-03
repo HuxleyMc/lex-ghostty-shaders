@@ -13,6 +13,7 @@ All shader implementations in this project were automatically learned and improv
 | Shader           | File                                       | Description                                                                                                                                                                                                                                                                                        |
 | ---------------- | ------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Water Ripple** | [`water_ripple.glsl`](./water_ripple.glsl) | Renders the terminal behind a calm water surface. A subtle ambient undulation is always present, and each keystroke drops a "pebble" at the cursor — a damped radial wave train that expands outward and fades to calm. Faster typing keeps fresh ripples near the cursor; idle water stays still. |
+| **Water Caustic** | [`water_caustic.glsl`](./water_caustic.glsl) | A lit-water caustic shimmer over the terminal, ported from [Paper Design's "Water"](https://shaders.paper.design/water). A recursive fractal-noise caustic field (zozuar's algorithm) distorts the texture lookup, a simplex-noise wave term adds slow lateral drift, and a soft highlight tint follows the caustic web. Always in motion, no cursor coupling. |
 
 > **About the Water Ripple "stateless" design.** Ghostty custom shaders are stateless (ShaderToy format) — the GPU carries no per-frame state, and only `iChannel0` (the terminal image) plus built-in uniforms are available. This shader builds its dynamic effect purely from `iTime` and `iTimeCursorChange` (the timestamp of the most recent cursor change, which fires per keystroke and is not retriggered by cursor blink). Because only the single latest keystroke is timestamped, at most one pebble wave train is active at a time; the ambient field plus the wave train's many rings provide the "interacting ripples" feel within that constraint. See the shader's header comment for the full explanation and the list of tunable knobs.
 
@@ -32,7 +33,7 @@ All shader implementations in this project were automatically learned and improv
 
    ```sh
    mkdir -p ~/.config/ghostty/shaders/
-   cp lex-ghostty-shaders/water_ripple.glsl ~/.config/ghostty/shaders/
+   cp lex-ghostty-shaders/water_ripple.glsl lex-ghostty-shaders/water_caustic.glsl ~/.config/ghostty/shaders/
    ```
 
 ## Enabling a shader in Ghostty
@@ -80,6 +81,17 @@ Each shader exposes its parameters as clearly commented `const` values near the 
 | `RIPPLE_LIFE` / `DECAY_RATE` | How long ripples persist before calming.                                             |
 
 Edit the values in the `.glsl` file and reload Ghostty — no recompilation step is needed.
+
+For **Water Caustic**, the most useful knobs are (defaults match the upstream "Default" preset):
+
+| Knob          | What it controls                                                                              |
+| ------------- | --------------------------------------------------------------------------------------------- |
+| `CAUSTIC`     | Overall caustic distortion strength. Lower = more legible text.                               |
+| `WAVES`       | Simplex lateral shimmer independent of the caustic web.                                       |
+| `HIGHLIGHTS`  | Caustic-shaped tint brightening the surface along the web (the "wet shimmer").                |
+| `LAYERING`    | Strength of the second, finer/slower caustic layer.                                           |
+| `EDGES`       | How much caustic distortion concentrates near the edges vs. uniformly across the surface.     |
+| `SIZE`        | Pattern scale (caustic cell size). Higher = tighter webbing.                                  |
 
 ## If you like this project
 

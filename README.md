@@ -16,6 +16,7 @@ All shader implementations in this project were automatically learned and improv
 | **Water Caustic** | [`water_caustic.glsl`](./water_caustic.glsl) | A lit-water caustic shimmer over the terminal, ported from [Paper Design's "Water"](https://shaders.paper.design/water). A recursive fractal-noise caustic field (zozuar's algorithm) distorts the texture lookup, a simplex-noise wave term adds slow lateral drift, and a soft highlight tint follows the caustic web. Always in motion, no cursor coupling. |
 | **Fire Embers** | [`fire_embers.glsl`](./fire_embers.glsl) | A subtle ambient fire shader tuned for terminal legibility. A bottom-weighted ember bed adds warm glow, sparse procedural sparks drift upward, and mild heat-haze refraction fades out before it reaches most of the text. Always in motion, no cursor coupling. |
 | **Matrix Rain** | [`matrix_rain.glsl`](./matrix_rain.glsl) | A subtle Matrix-inspired falling-code overlay. Sparse hashed columns drift downward with brighter leading heads and fading trails, while procedural rectangular glyph fragments avoid font assets and keep terminal text readable. Wakes on cursor changes such as typing, then fades out when idle. |
+| **Cursor Sparks** | [`cursor_sparks.glsl`](./cursor_sparks.glsl) | An electric-blue cursor lightning effect. Each cursor change creates a compact glow, soft halo, and short jagged bolt branches from the cursor; fast typing keeps the burst active, while idle terminals fade back to normal. Large cursor jumps are damped to avoid oversized flashes. |
 
 > **About the Water Ripple "stateless" design.** Ghostty custom shaders are stateless (ShaderToy format) — the GPU carries no per-frame state, and only `iChannel0` (the terminal image) plus built-in uniforms are available. This shader builds its dynamic effect purely from `iTime` and `iTimeCursorChange` (the timestamp of the most recent cursor change, which fires per keystroke and is not retriggered by cursor blink). Because only the single latest keystroke is timestamped, at most one pebble wave train is active at a time; the ambient field plus the wave train's many rings provide the "interacting ripples" feel within that constraint. See the shader's header comment for the full explanation and the list of tunable knobs.
 
@@ -35,7 +36,7 @@ All shader implementations in this project were automatically learned and improv
 
    ```sh
    mkdir -p ~/.config/ghostty/shaders/
-   cp lex-ghostty-shaders/water_ripple.glsl lex-ghostty-shaders/water_caustic.glsl lex-ghostty-shaders/fire_embers.glsl lex-ghostty-shaders/matrix_rain.glsl ~/.config/ghostty/shaders/
+   cp lex-ghostty-shaders/water_ripple.glsl lex-ghostty-shaders/water_caustic.glsl lex-ghostty-shaders/fire_embers.glsl lex-ghostty-shaders/matrix_rain.glsl lex-ghostty-shaders/cursor_sparks.glsl ~/.config/ghostty/shaders/
    ```
 
 ## Enabling a shader in Ghostty
@@ -121,6 +122,23 @@ For **Matrix Rain**, the most useful knobs are:
 | `GREEN_TINT_STRENGTH` | Strength of the low green cast while the Matrix effect is visible.                    |
 | `ACTIVITY_LIFE`       | How long the Matrix effect stays visible after typing or cursor movement.             |
 | `ACTIVITY_FADE_POWER` | Shape of the idle fade-out. Higher = fades more sharply near the end.                 |
+
+For **Cursor Sparks**, the most useful knobs are:
+
+| Knob                  | What it controls                                                                      |
+| --------------------- | ------------------------------------------------------------------------------------- |
+| `ACTIVITY_LIFE`       | How long the cursor burst stays visible after typing or cursor movement.              |
+| `ACTIVITY_FADE_POWER` | Shape of the idle fade-out. Higher = fades more sharply near the end.                 |
+| `GLOW_RADIUS`         | Radius of the soft blue halo around the cursor.                                       |
+| `CORE_INTENSITY`      | Brightness of the compact cursor-centered light.                                      |
+| `HALO_INTENSITY`      | Strength of the broader glow around the cursor.                                       |
+| `LIGHTNING_INTENSITY` | Brightness of the jagged white-blue bolt cores.                                       |
+| `BOLT_SPEED`          | How quickly bolts crawl outward from the cursor after a strike.                       |
+| `BOLT_WIDTH`          | Thickness of the bright bolt cores. Lower = sharper lightning.                        |
+| `BOLT_JAGGEDNESS`     | Sideways kink amount along each bolt. Higher = more angular lightning.                |
+| `BRANCH_INTENSITY`    | Brightness of short side branches compared with main bolts.                           |
+| `FLICKER_INTENSITY`   | Per-frame brightness flicker during an active strike.                                 |
+| `BOLT_COUNT`          | Number of procedural bolt directions in each burst.                                   |
 
 ## If you like this project
 

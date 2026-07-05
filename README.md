@@ -17,6 +17,11 @@ All shader implementations in this project were automatically learned and improv
 | **Fire Embers** | [`fire_embers.glsl`](./fire_embers.glsl) | A subtle ambient fire shader tuned for terminal legibility. A bottom-weighted ember bed adds warm glow, sparse procedural sparks drift upward, and mild heat-haze refraction fades out before it reaches most of the text. Always in motion, no cursor coupling. |
 | **Matrix Rain** | [`matrix_rain.glsl`](./matrix_rain.glsl) | A subtle Matrix-inspired falling-code overlay. Sparse hashed columns drift downward with brighter leading heads and fading trails, while procedural rectangular glyph fragments avoid font assets and keep terminal text readable. Wakes on cursor changes such as typing, then fades out when idle. |
 | **Cursor Sparks** | [`cursor_sparks.glsl`](./cursor_sparks.glsl) | An electric-blue cursor lightning effect. Each cursor change creates a compact glow, soft halo, and short jagged bolt branches from the cursor; fast typing keeps the burst active, while idle terminals fade back to normal. Large cursor jumps are damped to avoid oversized flashes. |
+| **Cursor Comet** | [`cursor_comet.glsl`](./cursor_comet.glsl) | A short bright comet tail follows local cursor movement. Cursor changes create a compact head, fading trail, and tiny sparks; idle terminals return to normal quickly, and large cursor jumps are damped. |
+| **Signal Pulse** | [`signal_pulse.glsl`](./signal_pulse.glsl) | Cursor changes emit subtle horizontal radar/scanline pulses from the cursor row. The effect is mostly full-width but activity-gated, with quiet cyan-green tinting that fades out when idle. |
+| **Rune Wake** | [`rune_wake.glsl`](./rune_wake.glsl) | Brief procedural arcane glyph fragments appear near the cursor and dissipate. Short strokes, arcs, and ticks stay cursor-local, activity-gated, and damped for large cursor jumps. |
+| **Frost Glass** | [`frost_glass.glsl`](./frost_glass.glsl) | A cool glass treatment with a faint idle tint. Cursor changes briefly grow local frost veins and tiny refraction near the cursor, then thaw back to a mostly neutral terminal. |
+| **Hologram Jitter** | [`hologram_jitter.glsl`](./hologram_jitter.glsl) | A restrained cyan hologram pass with subtle idle scanlines. Cursor changes add small local glitch bands and chromatic jitter, then fade back to daily-use readability. |
 | **Kawaii Sparkles** | [`kawaii_sparkles.glsl`](./kawaii_sparkles.glsl) | A pastel cursor-reactive burst with soft blush glow, tiny hearts, four-point sparkles, and faint bubbles. Typing keeps the cute decorations active near the cursor; idle terminals fade back to normal, and large cursor jumps are damped. |
 | **Aurora Veil** | [`aurora_veil.glsl`](./aurora_veil.glsl) | A soft ambient aurora overlay. Layered cyan, green, and violet ribbons drift near the top third of the terminal with a faint tint and very light refraction, keeping text readability first. Always in motion, no cursor coupling. |
 | **Ink Bloom** | [`ink_bloom.glsl`](./ink_bloom.glsl) | A cursor-reactive ink/color bloom. Each cursor change emits one expanding radial bloom from the cursor; fast typing keeps fresh blooms active, while large cursor jumps are damped through the previous cursor position. |
@@ -41,7 +46,7 @@ All shader implementations in this project were automatically learned and improv
 
    ```sh
    mkdir -p ~/.config/ghostty/shaders/
-   cp lex-ghostty-shaders/water_ripple.glsl lex-ghostty-shaders/water_caustic.glsl lex-ghostty-shaders/fire_embers.glsl lex-ghostty-shaders/matrix_rain.glsl lex-ghostty-shaders/cursor_sparks.glsl lex-ghostty-shaders/kawaii_sparkles.glsl lex-ghostty-shaders/aurora_veil.glsl lex-ghostty-shaders/ink_bloom.glsl lex-ghostty-shaders/crt_phosphor_bloom.glsl lex-ghostty-shaders/neuro_noise.glsl ~/.config/ghostty/shaders/
+   cp lex-ghostty-shaders/water_ripple.glsl lex-ghostty-shaders/water_caustic.glsl lex-ghostty-shaders/fire_embers.glsl lex-ghostty-shaders/matrix_rain.glsl lex-ghostty-shaders/cursor_sparks.glsl lex-ghostty-shaders/cursor_comet.glsl lex-ghostty-shaders/signal_pulse.glsl lex-ghostty-shaders/rune_wake.glsl lex-ghostty-shaders/frost_glass.glsl lex-ghostty-shaders/hologram_jitter.glsl lex-ghostty-shaders/kawaii_sparkles.glsl lex-ghostty-shaders/aurora_veil.glsl lex-ghostty-shaders/ink_bloom.glsl lex-ghostty-shaders/crt_phosphor_bloom.glsl lex-ghostty-shaders/neuro_noise.glsl ~/.config/ghostty/shaders/
    ```
 
 ## Enabling a shader in Ghostty
@@ -154,6 +159,78 @@ For **Cursor Sparks**, the most useful knobs are:
 | `BRANCH_INTENSITY`    | Brightness of short side branches compared with main bolts.                           |
 | `FLICKER_INTENSITY`   | Per-frame brightness flicker during an active strike.                                 |
 | `BOLT_COUNT`          | Number of procedural bolt directions in each burst.                                   |
+
+For **Cursor Comet**, the most useful knobs are:
+
+| Knob                  | What it controls                                                                      |
+| --------------------- | ------------------------------------------------------------------------------------- |
+| `ACTIVITY_LIFE`       | How long the comet head, tail, and sparks stay visible after cursor movement.         |
+| `ACTIVITY_FADE_POWER` | Shape of the idle fade-out. Higher = fades more sharply near the end.                 |
+| `HEAD_RADIUS`         | Size of the compact cursor-centered comet head.                                       |
+| `TAIL_LENGTH`         | Maximum length of the fading cursor trail.                                            |
+| `TAIL_WIDTH`          | Thickness of the trail stroke. Lower = sharper and less visible.                      |
+| `SPARK_DENSITY`       | Number of small procedural sparks along the tail.                                     |
+| `HEAD_INTENSITY`      | Brightness at the cursor head.                                                        |
+| `TAIL_INTENSITY`      | Brightness of the fading trail.                                                       |
+| `SPARK_INTENSITY`     | Brightness of the detached tail sparks.                                               |
+| `JUMP_DAMPING`        | How much large cursor jumps are reduced compared with local typing-style moves.       |
+
+For **Signal Pulse**, the most useful knobs are:
+
+| Knob                | What it controls                                                                      |
+| ------------------- | ------------------------------------------------------------------------------------- |
+| `ACTIVITY_LIFE`     | How long scanline/radar pulses stay visible after cursor movement.                    |
+| `PULSE_SPEED`       | How quickly pulse bands travel away from the cursor row.                              |
+| `PULSE_WIDTH`       | Thickness of the bright horizontal pulse bands.                                       |
+| `PULSE_SPACING`     | Distance between secondary echo pulses.                                               |
+| `SCANLINE_STRENGTH` | Strength of the activity-time horizontal line shading.                                |
+| `PULSE_INTENSITY`   | Brightness of the traveling pulse bands.                                              |
+| `CENTER_INTENSITY`  | Brightness of the soft glow at the cursor row.                                        |
+| `TINT_STRENGTH`     | Strength of the subtle cyan-green signal tint while activity is visible.              |
+
+For **Rune Wake**, the most useful knobs are:
+
+| Knob                  | What it controls                                                                      |
+| --------------------- | ------------------------------------------------------------------------------------- |
+| `ACTIVITY_LIFE`       | How long rune fragments stay visible after cursor movement.                           |
+| `ACTIVITY_FADE_POWER` | Shape of the idle fade-out. Higher = fades more sharply near the end.                 |
+| `RUNE_RADIUS`         | Radius of the cursor-local wake area.                                                 |
+| `STROKE_WIDTH`        | Line width of straight rune strokes.                                                  |
+| `ARC_WIDTH`           | Line width of circular rune arcs.                                                     |
+| `RUNE_COUNT`          | Number of procedural glyph fragments in each burst.                                   |
+| `RUNE_INTENSITY`      | Brightness of the glyph fragments.                                                    |
+| `HALO_INTENSITY`      | Strength of the faint glow behind the marks.                                          |
+| `JUMP_DAMPING`        | How much large cursor jumps are reduced compared with local typing-style moves.       |
+
+For **Frost Glass**, the most useful knobs are:
+
+| Knob                 | What it controls                                                                      |
+| -------------------- | ------------------------------------------------------------------------------------- |
+| `ACTIVITY_LIFE`      | How long cursor-triggered frost veins remain before thawing.                          |
+| `IDLE_TINT_STRENGTH` | Strength of the faint always-on cool glass tint.                                      |
+| `IDLE_CONTRAST`      | Tiny contrast lift in the idle glass treatment.                                       |
+| `FROST_RADIUS`       | Radius of the cursor-local frost area.                                                |
+| `VEIN_SCALE`         | Pattern scale of the frost veins. Higher = finer cracks.                              |
+| `VEIN_WIDTH`         | Thickness of frost cracks. Lower = thinner, sharper veins.                            |
+| `VEIN_INTENSITY`     | Brightness of the thawing frost veins.                                                |
+| `FROST_HAZE`         | Strength of the soft local icy haze around the cursor.                                |
+| `REFRACTION`         | How strongly active frost displaces the terminal image.                               |
+| `JUMP_DAMPING`       | How much large cursor jumps are reduced compared with local typing-style moves.       |
+
+For **Hologram Jitter**, the most useful knobs are:
+
+| Knob                 | What it controls                                                                      |
+| -------------------- | ------------------------------------------------------------------------------------- |
+| `ACTIVITY_LIFE`      | How long cursor-triggered glitch lines and jitter remain visible.                     |
+| `IDLE_TINT_STRENGTH` | Strength of the faint always-on cyan hologram tint.                                   |
+| `IDLE_SCANLINE`      | Strength of the subtle stable scanline shading.                                       |
+| `JITTER_RADIUS`      | Radius of the cursor-local glitch area.                                               |
+| `GLITCH_LINE_COUNT`  | Number of possible horizontal glitch bands.                                           |
+| `GLITCH_WIDTH`       | Height of each horizontal glitch band.                                                |
+| `GLITCH_SHIFT`       | Maximum horizontal displacement of glitch bands.                                      |
+| `CHROMA_OFFSET`      | Red/blue channel separation during active jitter.                                     |
+| `GLITCH_INTENSITY`   | Brightness of activity-time glitch lines and cursor shimmer.                          |
+| `JUMP_DAMPING`       | How much large cursor jumps are reduced compared with local typing-style moves.       |
 
 For **Kawaii Sparkles**, the most useful knobs are:
 

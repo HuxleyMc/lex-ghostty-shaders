@@ -26,6 +26,7 @@ All shader implementations in this project were automatically learned and improv
 | **Aurora Veil** | [`aurora_veil.glsl`](./aurora_veil.glsl) | A soft ambient aurora overlay. Layered cyan, green, and violet ribbons drift near the top third of the terminal with a faint tint and very light refraction, keeping text readability first. Always in motion, no cursor coupling. |
 | **Ink Bloom** | [`ink_bloom.glsl`](./ink_bloom.glsl) | A cursor-reactive ink/color bloom. Each cursor change emits one expanding radial bloom from the cursor; fast typing keeps fresh blooms active, while large cursor jumps are damped through the previous cursor position. |
 | **CRT Phosphor Bloom** | [`crt_phosphor_bloom.glsl`](./crt_phosphor_bloom.glsl) | A visible CRT pass with scanlines, phosphor slot tint, local brightness bloom, red/blue pixel separation, static tube grain, controlled phosphor flicker, glass glow, mild barrel curvature, and softened tube edge darkening. |
+| **Dimensional Rupture** | [`dimensional_rupture.glsl`](./dimensional_rupture.glsl) | An intentionally excessive neon rupture shader. The terminal is warped through radial shock rings, plasma folds, chromatic tearing, horizontal glitch cuts, and cursor-triggered shards; it is not tuned for daily readability, but keeps a fixed small loop budget and only a few texture reads. |
 | **Neuro Noise** | [`neuro_noise.glsl`](./neuro_noise.glsl) | A glowing web of fluid lines and soft intersections as the terminal background, ported from [Paper Design's "Neuro Noise"](https://shaders.paper.design/neuro-noise). 15 rotated, time-drifting octaves (zozuar's algorithm) form the structure; the pattern paints only the empty background, so glyphs stay crisp. |
 
 > **About the Water Ripple "stateless" design.** Ghostty custom shaders are stateless (ShaderToy format) — the GPU carries no per-frame state, and only `iChannel0` (the terminal image) plus built-in uniforms are available. This shader builds its dynamic effect purely from `iTime` and `iTimeCursorChange` (the timestamp of the most recent cursor change, which fires per keystroke and is not retriggered by cursor blink). Because only the single latest keystroke is timestamped, at most one pebble wave train is active at a time; the ambient field plus the wave train's many rings provide the "interacting ripples" feel within that constraint. See the shader's header comment for the full explanation and the list of tunable knobs.
@@ -46,7 +47,7 @@ All shader implementations in this project were automatically learned and improv
 
    ```sh
    mkdir -p ~/.config/ghostty/shaders/
-   cp lex-ghostty-shaders/water_ripple.glsl lex-ghostty-shaders/water_caustic.glsl lex-ghostty-shaders/fire_embers.glsl lex-ghostty-shaders/matrix_rain.glsl lex-ghostty-shaders/cursor_sparks.glsl lex-ghostty-shaders/cursor_comet.glsl lex-ghostty-shaders/signal_pulse.glsl lex-ghostty-shaders/rune_wake.glsl lex-ghostty-shaders/frost_glass.glsl lex-ghostty-shaders/hologram_jitter.glsl lex-ghostty-shaders/kawaii_sparkles.glsl lex-ghostty-shaders/aurora_veil.glsl lex-ghostty-shaders/ink_bloom.glsl lex-ghostty-shaders/crt_phosphor_bloom.glsl lex-ghostty-shaders/neuro_noise.glsl ~/.config/ghostty/shaders/
+   cp lex-ghostty-shaders/water_ripple.glsl lex-ghostty-shaders/water_caustic.glsl lex-ghostty-shaders/fire_embers.glsl lex-ghostty-shaders/matrix_rain.glsl lex-ghostty-shaders/cursor_sparks.glsl lex-ghostty-shaders/cursor_comet.glsl lex-ghostty-shaders/signal_pulse.glsl lex-ghostty-shaders/rune_wake.glsl lex-ghostty-shaders/frost_glass.glsl lex-ghostty-shaders/hologram_jitter.glsl lex-ghostty-shaders/kawaii_sparkles.glsl lex-ghostty-shaders/aurora_veil.glsl lex-ghostty-shaders/ink_bloom.glsl lex-ghostty-shaders/crt_phosphor_bloom.glsl lex-ghostty-shaders/dimensional_rupture.glsl lex-ghostty-shaders/neuro_noise.glsl ~/.config/ghostty/shaders/
    ```
 
 ## Enabling a shader in Ghostty
@@ -285,6 +286,20 @@ For **CRT Phosphor Bloom**, the most useful knobs are:
 | `CHROMATIC_OFFSET`  | Red/blue sample offset in physical pixels. Higher = more color fringing.             |
 | `CURVATURE`         | Mild barrel curvature that makes the terminal plane read more like a CRT tube.        |
 | `TUBE_EDGE`         | Extra darkening near curved screen edges.                                             |
+
+For **Dimensional Rupture**, the most useful knobs are:
+
+| Knob                | What it controls                                                                      |
+| ------------------- | ------------------------------------------------------------------------------------- |
+| `RUPTURE_INTENSITY` | Overall strength of the neon plasma, rings, and cursor burst overlay.                |
+| `WARP_STRENGTH`     | How far the shader bends the terminal image. Lower = less distortion.                |
+| `CHROMA_SPLIT`      | Red/blue channel separation around the warped image.                                 |
+| `PLASMA_SCALE`      | Size of the moving plasma folds. Lower = larger, slower-looking forms.               |
+| `RING_DENSITY`      | Number of radial shock bands crossing the terminal.                                  |
+| `GLITCH_AMOUNT`     | Strength of horizontal scan-tear offsets.                                            |
+| `BURST_LIFE`        | How long cursor-triggered shock rings and shards stay visible.                       |
+| `BURST_BOOST`       | Extra intensity applied to cursor-triggered rupture effects.                         |
+| `SHARD_COUNT`       | Number of fixed-cost radial shards in the cursor burst.                              |
 
 ## If you like this project
 

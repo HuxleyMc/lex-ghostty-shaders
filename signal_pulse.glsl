@@ -24,7 +24,7 @@ const float CENTER_GLOW_HEIGHT  = 0.060; // soft cursor-row glow height
 
 // --- Scanlines --------------------------------------------------------------
 const float SCANLINE_SCALE      = 820.0; // horizontal line frequency
-const float SCANLINE_STRENGTH   = 0.105; // strength while activity is visible
+const float SCANLINE_STRENGTH   = 0.085; // strength while activity is visible
 const float RADAR_DASH_SCALE    = 38.0;  // segmented dash frequency across width
 
 // --- Intensity --------------------------------------------------------------
@@ -69,16 +69,21 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
     vec2 res = iResolution.xy;
     vec2 uv = fragCoord / res;
     float t = iTime;
-    float age = max(t - iTimeCursorChange, 0.0);
 
+    vec4 color = texture(iChannel0, uv);
+
+    float activity = activityAmount(t);
+    if (activity <= 0.0001) {
+        fragColor = color;
+        return;
+    }
+
+    float age = max(t - iTimeCursorChange, 0.0);
     vec2 cursorCenter = vec2(
         (iCurrentCursor.x + iCurrentCursor.z * 0.5) / res.x,
         (iCurrentCursor.y - iCurrentCursor.w * 0.5) / res.y
     );
 
-    vec4 color = texture(iChannel0, uv);
-
-    float activity = activityAmount(t);
     float eventGain = activity * cursorStepGain();
     float dy = uv.y - cursorCenter.y;
 
@@ -91,9 +96,11 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
     float dash = mix(0.55, 1.0, step(0.32, hash11(dashPhase)));
     float scan = 0.5 + 0.5 * sin((fragCoord.y + floor(t * 18.0)) * SCANLINE_SCALE / max(res.y, 1.0));
     float centerGlow = exp(-dy * dy / max(CENTER_GLOW_HEIGHT * CENTER_GLOW_HEIGHT, 0.000001));
+    float pulseEnvelope = clamp(pulse + centerGlow * 0.35, 0.0, 1.0);
 
     vec3 pulseColor = mix(SIGNAL_CYAN, SIGNAL_GREEN, 0.28 + 0.22 * sin(iTimeCursorChange * 3.1));
-    float scanShade = 1.0 - scan * SCANLINE_STRENGTH * eventGain;
+    float scanWeight = mix(0.32, 1.0, pulseEnvelope);
+    float scanShade = 1.0 - scan * SCANLINE_STRENGTH * eventGain * scanWeight;
     color.rgb *= scanShade;
     color.rgb += pulseColor * pulse * dash * PULSE_INTENSITY * eventGain;
     color.rgb += pulseColor * centerGlow * CENTER_INTENSITY * eventGain;

@@ -101,16 +101,25 @@ float frostVeins(vec2 p, float age, float seed) {
 void mainImage(out vec4 fragColor, in vec2 fragCoord) {
     vec2 res = iResolution.xy;
     vec2 uv = fragCoord / res;
-    float aspect = res.x / res.y;
     float t = iTime;
-    float age = max(t - iTimeCursorChange, 0.0);
 
+    float activity = activityAmount(t);
+    if (activity <= 0.0001) {
+        vec4 idleColor = texture(iChannel0, uv);
+        float idleLuma = dot(idleColor.rgb, vec3(0.299, 0.587, 0.114));
+        idleColor.rgb = mix(idleColor.rgb, mix(idleColor.rgb, GLASS_TINT, 0.32), IDLE_TINT_STRENGTH);
+        idleColor.rgb = mix(idleColor.rgb, vec3(idleLuma) + (idleColor.rgb - vec3(idleLuma)) * (1.0 + IDLE_CONTRAST), IDLE_CONTRAST);
+        fragColor = vec4(idleColor.rgb, idleColor.a);
+        return;
+    }
+
+    float aspect = res.x / res.y;
+    float age = max(t - iTimeCursorChange, 0.0);
     vec2 cursorCenter = vec2(
         (iCurrentCursor.x + iCurrentCursor.z * 0.5) / res.x,
         (iCurrentCursor.y - iCurrentCursor.w * 0.5) / res.y
     );
 
-    float activity = activityAmount(t);
     float burst = activity * cursorJumpGain();
     vec2 p = vec2((uv.x - cursorCenter.x) * aspect, uv.y - cursorCenter.y);
     float localMask = exp(-dot(p, p) / max(FROST_RADIUS * FROST_RADIUS, 0.0000001));

@@ -69,18 +69,23 @@ float bloomMask(float dist, float age) {
 void mainImage(out vec4 fragColor, in vec2 fragCoord) {
     vec2 res = iResolution.xy;
     vec2 uv = fragCoord / res;
-    float aspect = res.x / res.y;
     float t = iTime;
-    float age = max(t - iTimeCursorChange, 0.0);
 
+    vec4 color = texture(iChannel0, uv);
+
+    float activity = activityAmount(t);
+    if (activity <= 0.0001) {
+        fragColor = color;
+        return;
+    }
+
+    float aspect = res.x / res.y;
+    float age = max(t - iTimeCursorChange, 0.0);
     vec2 cursorCenter = vec2(
         (iCurrentCursor.x + iCurrentCursor.z * 0.5) / res.x,
         (iCurrentCursor.y - iCurrentCursor.w * 0.5) / res.y
     );
 
-    vec4 color = texture(iChannel0, uv);
-
-    float activity = activityAmount(t);
     float jumpGain = cursorJumpGain();
     float burst = activity * jumpGain;
 

@@ -121,6 +121,11 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
 
     vec4 color = texture(iChannel0, uv);
     float activity = matrixActivity(iTime);
+    if (activity <= 0.0001) {
+        fragColor = color;
+        return;
+    }
+
     color.rgb *= 1.0 - DARKEN_STRENGTH * activity;
 
     // Subtle activity-gated green cast, kept separate from the falling glyph

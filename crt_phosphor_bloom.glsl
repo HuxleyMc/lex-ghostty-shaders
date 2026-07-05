@@ -14,16 +14,15 @@
 
 // ============================ TUNING =======================================
 // --- CRT response -----------------------------------------------------------
-const float SCANLINE_STRENGTH = 0.620; // dark horizontal scanline contrast
-const float BLOOM_INTENSITY   = 0.450; // local bright-pixel halo strength
-const float PHOSPHOR_TINT     = 0.520; // RGB phosphor color separation/tint
+const float SCANLINE_STRENGTH = 0.560; // dark horizontal scanline contrast
+const float BLOOM_INTENSITY   = 0.410; // local bright-pixel halo strength
+const float PHOSPHOR_TINT     = 0.470; // RGB phosphor color separation/tint
 const float VIGNETTE          = 0.380; // edge darkening
-const float PIXEL_SHARPNESS   = 0.94;  // center-vs-neighbor crispness
-const float GRAIN_STRENGTH    = 0.070; // static subpixel/tube texture, not flicker
-const float FLICKER_STRENGTH  = 0.045; // controlled phosphor shimmer, not a hard strobe
+const float GRAIN_STRENGTH    = 0.055; // static subpixel/tube texture, not flicker
+const float FLICKER_STRENGTH  = 0.035; // controlled phosphor shimmer, not a hard strobe
 const float FLICKER_SPEED     = 38.0;  // flicker cadence in updates per second
 const float GLASS_TINT        = 0.220; // stable low tube glow visible on dark backgrounds
-const float MASK_VISIBILITY   = 0.340; // shadow-mask visibility independent of text brightness
+const float MASK_VISIBILITY   = 0.290; // shadow-mask visibility independent of text brightness
 const float CHROMATIC_OFFSET  = 1.65;  // red/blue sample offset in physical pixels
 const float CURVATURE         = 0.045; // barrel curvature; 0 = flat terminal plane
 const float TUBE_EDGE         = 0.260; // extra darkening near curved screen edges
@@ -44,8 +43,7 @@ float hash12(vec2 p) {
     return fract((p3.x + p3.y) * p3.z);
 }
 
-vec3 sampleBloom(vec2 uv, vec2 px) {
-    vec3 center = texture(iChannel0, uv).rgb;
+vec3 sampleBloom(vec2 uv, vec2 px, vec3 center) {
     vec3 nearSum = vec3(0.0);
     nearSum += texture(iChannel0, clamp(uv + vec2( px.x, 0.0), vec2(0.0), vec2(1.0))).rgb;
     nearSum += texture(iChannel0, clamp(uv + vec2(-px.x, 0.0), vec2(0.0), vec2(1.0))).rgb;
@@ -73,7 +71,10 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
     vec2 curvedCentered = screenCentered * (1.0 + CURVATURE * radiusSq);
     vec2 uv = curvedCentered * 0.5 + 0.5;
 
-    float inBounds = step(0.0, uv.x) * step(0.0, uv.y) * step(uv.x, 1.0) * step(uv.y, 1.0);
+    float softBounds = smoothstep(-0.010, 0.020, uv.x)
+        * smoothstep(-0.010, 0.020, uv.y)
+        * (1.0 - smoothstep(0.980, 1.010, uv.x))
+        * (1.0 - smoothstep(0.980, 1.010, uv.y));
     float tubeEdge = smoothstep(0.0, 0.055, uv.x)
         * smoothstep(0.0, 0.055, uv.y)
         * (1.0 - smoothstep(0.945, 1.0, uv.x))
@@ -90,14 +91,6 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
         texture(iChannel0, clamp(uv - chromaOffset, vec2(0.0), vec2(1.0))).b
     );
     color = mix(color, chroma, 0.55);
-
-    vec3 neighborAvg = (
-        texture(iChannel0, clamp(uv + vec2( px.x, 0.0), vec2(0.0), vec2(1.0))).rgb +
-        texture(iChannel0, clamp(uv + vec2(-px.x, 0.0), vec2(0.0), vec2(1.0))).rgb +
-        texture(iChannel0, clamp(uv + vec2(0.0,  px.y), vec2(0.0), vec2(1.0))).rgb +
-        texture(iChannel0, clamp(uv + vec2(0.0, -px.y), vec2(0.0), vec2(1.0))).rgb
-    ) * 0.25;
-    color = mix(neighborAvg, color, PIXEL_SHARPNESS);
 
     float scanPhase = fract(fragCoord.y * 0.5);
     float scan = 0.58 + 0.42 * smoothstep(0.16, 0.46, scanPhase)
@@ -116,7 +109,7 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
     color *= 1.0 - MASK_VISIBILITY * (1.0 - mask) * 0.70;
     color = mix(color, color * phosphor + phosphorMask * (0.030 + phosphorLuma * 0.075), PHOSPHOR_TINT);
 
-    vec3 bloom = sampleBloom(uv, px);
+    vec3 bloom = sampleBloom(uv, px, base.rgb);
     color += bloom * BLOOM_INTENSITY;
 
     float grain = hash12(floor(fragCoord.xy * vec2(0.5, 1.0)));
@@ -133,7 +126,7 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
     color += GLASS_COLOR * GLASS_TINT * (0.35 + 0.65 * glass);
 
     color *= mix(1.0 - TUBE_EDGE, 1.0, tubeEdge);
-    color = mix(GLASS_COLOR * 0.18, color, inBounds);
+    color = mix(GLASS_COLOR * 0.18, color, softBounds);
 
     float vig = 1.0 - smoothstep(0.24, 1.35, radiusSq);
     color *= mix(1.0 - VIGNETTE, 1.0, vig);

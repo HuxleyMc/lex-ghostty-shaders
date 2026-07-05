@@ -20,14 +20,14 @@ const float ACTIVITY_FADE_POWER = 1.70;  // higher = sharper fade near the end
 
 // --- Comet shape ------------------------------------------------------------
 const float HEAD_RADIUS         = 0.032; // compact cursor head radius
-const float TAIL_LENGTH         = 0.150; // maximum tail length in height-normalized UV
-const float TAIL_WIDTH          = 0.010; // tail stroke width
+const float TAIL_LENGTH         = 0.135; // maximum tail length in height-normalized UV
+const float TAIL_WIDTH          = 0.009; // tail stroke width
 const float SPARK_DENSITY       = 10.0;  // number of small sparks along the tail
 
 // --- Intensity --------------------------------------------------------------
 const float HEAD_INTENSITY      = 0.36;  // brightness at the cursor head
-const float TAIL_INTENSITY      = 0.44;  // brightness of the fading trail
-const float SPARK_INTENSITY     = 0.26;  // brightness of detached tail sparks
+const float TAIL_INTENSITY      = 0.38;  // brightness of the fading trail
+const float SPARK_INTENSITY     = 0.22;  // brightness of detached tail sparks
 
 // --- Cursor activity --------------------------------------------------------
 const float JUMP_DAMPING        = 0.24;  // gain used for large cursor jumps
@@ -106,10 +106,18 @@ float sparkField(vec2 p, vec2 tailDir, vec2 tailNormal, float tailLen, float age
 void mainImage(out vec4 fragColor, in vec2 fragCoord) {
     vec2 res = iResolution.xy;
     vec2 uv = fragCoord / res;
-    float aspect = res.x / res.y;
     float t = iTime;
-    float age = max(t - iTimeCursorChange, 0.0);
 
+    vec4 color = texture(iChannel0, uv);
+
+    float activity = activityAmount(t);
+    if (activity <= 0.0001) {
+        fragColor = color;
+        return;
+    }
+
+    float aspect = res.x / res.y;
+    float age = max(t - iTimeCursorChange, 0.0);
     vec2 currentCursor = vec2(
         (iCurrentCursor.x + iCurrentCursor.z * 0.5) / res.x,
         (iCurrentCursor.y - iCurrentCursor.w * 0.5) / res.y
@@ -119,9 +127,6 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
         (iPreviousCursor.y - iPreviousCursor.w * 0.5) / res.y
     );
 
-    vec4 color = texture(iChannel0, uv);
-
-    float activity = activityAmount(t);
     float jumpGain = cursorJumpGain();
     float burst = activity * jumpGain;
 
@@ -133,13 +138,14 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
     float stationary = 1.0 - smoothstep(0.001, 0.010, moveLen);
     vec2 fallbackDir = vec2(-1.0, 0.12);
     vec2 tailDir = normalize(mix(moveDir / max(moveLen, 0.0001), normalize(fallbackDir), stationary));
-    float tailLen = min(max(moveLen, 0.048), TAIL_LENGTH) * mix(0.55, 1.0, jumpGain);
+    float motionGain = smoothstep(0.004, 0.020, moveLen) * mix(0.35, 1.0, jumpGain);
+    float tailLen = min(max(moveLen, 0.040), TAIL_LENGTH) * mix(0.38, 1.0, jumpGain);
     vec2 tailNormal = vec2(-tailDir.y, tailDir.x);
 
     float trailAlong = 0.0;
     float trail = segmentMask(p, -tailDir * tailLen, vec2(0.0), TAIL_WIDTH, trailAlong);
     float taper = smoothstep(0.0, 0.18, trailAlong) * (1.0 - smoothstep(0.78, 1.0, trailAlong) * 0.30);
-    float wake = trail * taper * (1.0 - age / max(ACTIVITY_LIFE, 0.0001));
+    float wake = trail * taper * (1.0 - age / max(ACTIVITY_LIFE, 0.0001)) * motionGain;
 
     float head = exp(-dot(p, p) / max(HEAD_RADIUS * HEAD_RADIUS, 0.0000001));
     float core = exp(-dot(p, p) / max(HEAD_RADIUS * HEAD_RADIUS * 0.16, 0.0000001));
@@ -151,7 +157,7 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
     color.rgb += tailColor * wake * TAIL_INTENSITY * burst;
     color.rgb += COMET_CYAN * head * HEAD_INTENSITY * burst;
     color.rgb += COMET_CORE * core * HEAD_INTENSITY * 0.70 * burst;
-    color.rgb += mix(COMET_CYAN, COMET_CORE, 0.48) * sparks * SPARK_INTENSITY * activity;
+    color.rgb += mix(COMET_CYAN, COMET_CORE, 0.48) * sparks * SPARK_INTENSITY * activity * motionGain;
 
     fragColor = vec4(color.rgb, color.a);
 }

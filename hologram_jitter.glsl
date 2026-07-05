@@ -100,16 +100,26 @@ float glitchBands(vec2 p, float age, float seed, out float shiftOut) {
 void mainImage(out vec4 fragColor, in vec2 fragCoord) {
     vec2 res = iResolution.xy;
     vec2 uv = fragCoord / res;
-    float aspect = res.x / res.y;
     float t = iTime;
-    float age = max(t - iTimeCursorChange, 0.0);
 
+    float activity = activityAmount(t);
+    if (activity <= 0.0001) {
+        vec4 idleBase = texture(iChannel0, uv);
+        vec3 idleColor = idleBase.rgb;
+        float idleScan = 0.5 + 0.5 * sin(fragCoord.y * 2.35 + floor(t * 6.0));
+        idleColor *= 1.0 - idleScan * IDLE_SCANLINE;
+        idleColor = mix(idleColor, idleColor * (vec3(1.0) + HOLO_CYAN * 0.22), IDLE_TINT_STRENGTH);
+        fragColor = vec4(idleColor, idleBase.a);
+        return;
+    }
+
+    float aspect = res.x / res.y;
+    float age = max(t - iTimeCursorChange, 0.0);
     vec2 cursorCenter = vec2(
         (iCurrentCursor.x + iCurrentCursor.z * 0.5) / res.x,
         (iCurrentCursor.y - iCurrentCursor.w * 0.5) / res.y
     );
 
-    float activity = activityAmount(t);
     float burst = activity * cursorJumpGain();
 
     vec2 p = vec2((uv.x - cursorCenter.x) * aspect, uv.y - cursorCenter.y);

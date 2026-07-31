@@ -28,6 +28,7 @@ All shader implementations in this project were automatically learned and improv
 | **CRT Phosphor Bloom** | [`crt_phosphor_bloom.glsl`](./crt_phosphor_bloom.glsl) | A visible CRT pass with scanlines, phosphor slot tint, local brightness bloom, red/blue pixel separation, static tube grain, controlled phosphor flicker, glass glow, mild barrel curvature, and softened tube edge darkening. |
 | **Dimensional Rupture** | [`dimensional_rupture.glsl`](./dimensional_rupture.glsl) | An intentionally excessive neon rupture shader. The terminal is warped through radial shock rings, plasma folds, chromatic tearing, horizontal glitch cuts, and cursor-triggered shards; it is not tuned for daily readability, but keeps a fixed small loop budget and only a few texture reads. |
 | **Neuro Noise** | [`neuro_noise.glsl`](./neuro_noise.glsl) | A glowing web of fluid lines and soft intersections as the terminal background, ported from [Paper Design's "Neuro Noise"](https://shaders.paper.design/neuro-noise). 15 rotated, time-drifting octaves (zozuar's algorithm) form the structure; the pattern paints only the empty background, so glyphs stay crisp. |
+| **Anime Speed Lines** | [`anime_speed_lines.glsl`](./anime_speed_lines.glsl) | A manga power-up burst at the cursor. Each cursor change fires sharp, tapered speed lines radiating outward with a brief white focus flash and a slight dramatic edge vignette. Typing keeps the action-scene burst alive; idle terminals fade back to normal, and large cursor jumps are damped. |
 
 > **About the Water Ripple "stateless" design.** Ghostty custom shaders are stateless (ShaderToy format) — the GPU carries no per-frame state, and only `iChannel0` (the terminal image) plus built-in uniforms are available. This shader builds its dynamic effect purely from `iTime` and `iTimeCursorChange` (the timestamp of the most recent cursor change, which fires per keystroke and is not retriggered by cursor blink). Because only the single latest keystroke is timestamped, at most one pebble wave train is active at a time; the ambient field plus the wave train's many rings provide the "interacting ripples" feel within that constraint. See the shader's header comment for the full explanation and the list of tunable knobs.
 
@@ -47,7 +48,7 @@ All shader implementations in this project were automatically learned and improv
 
    ```sh
    mkdir -p ~/.config/ghostty/shaders/
-   cp lex-ghostty-shaders/water_ripple.glsl lex-ghostty-shaders/water_caustic.glsl lex-ghostty-shaders/fire_embers.glsl lex-ghostty-shaders/matrix_rain.glsl lex-ghostty-shaders/cursor_sparks.glsl lex-ghostty-shaders/cursor_comet.glsl lex-ghostty-shaders/signal_pulse.glsl lex-ghostty-shaders/rune_wake.glsl lex-ghostty-shaders/frost_glass.glsl lex-ghostty-shaders/hologram_jitter.glsl lex-ghostty-shaders/kawaii_sparkles.glsl lex-ghostty-shaders/aurora_veil.glsl lex-ghostty-shaders/ink_bloom.glsl lex-ghostty-shaders/crt_phosphor_bloom.glsl lex-ghostty-shaders/dimensional_rupture.glsl lex-ghostty-shaders/neuro_noise.glsl ~/.config/ghostty/shaders/
+   cp lex-ghostty-shaders/water_ripple.glsl lex-ghostty-shaders/water_caustic.glsl lex-ghostty-shaders/fire_embers.glsl lex-ghostty-shaders/matrix_rain.glsl lex-ghostty-shaders/cursor_sparks.glsl lex-ghostty-shaders/cursor_comet.glsl lex-ghostty-shaders/signal_pulse.glsl lex-ghostty-shaders/rune_wake.glsl lex-ghostty-shaders/frost_glass.glsl lex-ghostty-shaders/hologram_jitter.glsl lex-ghostty-shaders/kawaii_sparkles.glsl lex-ghostty-shaders/aurora_veil.glsl lex-ghostty-shaders/ink_bloom.glsl lex-ghostty-shaders/crt_phosphor_bloom.glsl lex-ghostty-shaders/dimensional_rupture.glsl lex-ghostty-shaders/neuro_noise.glsl lex-ghostty-shaders/anime_speed_lines.glsl ~/.config/ghostty/shaders/
    ```
 
 ## Enabling a shader in Ghostty
@@ -300,6 +301,23 @@ For **Dimensional Rupture**, the most useful knobs are:
 | `BURST_LIFE`        | How long cursor-triggered shock rings and shards stay visible.                       |
 | `BURST_BOOST`       | Extra intensity applied to cursor-triggered rupture effects.                         |
 | `SHARD_COUNT`       | Number of fixed-cost radial shards in the cursor burst.                              |
+
+For **Anime Speed Lines**, the most useful knobs are:
+
+| Knob                  | What it controls                                                                      |
+| --------------------- | ------------------------------------------------------------------------------------- |
+| `ACTIVITY_LIFE`       | How long the speed-line burst stays visible after cursor movement.                    |
+| `ACTIVITY_FADE_POWER` | Shape of the idle fade-out. Higher = fades more sharply near the end.                 |
+| `RAY_COUNT`           | Number of angular ray sectors around the cursor.                                      |
+| `RAY_ACTIVE_FRACTION` | Fraction of sectors that emit a line. Lower = sparser, more hand-drawn look.          |
+| `RAY_MAX_LENGTH`      | Maximum ray length in height-normalized units.                                        |
+| `RAY_GROWTH_SPEED`    | How quickly lines shoot outward from the cursor.                                      |
+| `RAY_MIN_WIDTH` / `RAY_MAX_WIDTH` | Angular half-width range of the lines. Lower = sharper streaks.             |
+| `RAY_INTENSITY`       | Brightness of the speed lines. Lower = more legible.                                  |
+| `RAY_TIP_BOOST`       | Extra glow at the growing ray tips.                                                   |
+| `RAY_INNER_GAP`       | Clear radius around the cursor glyph before lines start.                              |
+| `FLASH_INTENSITY` / `FLASH_LIFE` | Brightness and duration of the focus-point flash.                          |
+| `VIGNETTE_STRENGTH`   | Dramatic edge darkening while the burst is live. `0` disables it.                     |
 
 ## If you like this project
 

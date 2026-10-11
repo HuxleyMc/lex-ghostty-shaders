@@ -29,6 +29,7 @@ All shader implementations in this project were automatically learned and improv
 | **Dimensional Rupture** | [`dimensional_rupture.glsl`](./dimensional_rupture.glsl) | An intentionally excessive neon rupture shader. The terminal is warped through radial shock rings, plasma folds, chromatic tearing, horizontal glitch cuts, and cursor-triggered shards; it is not tuned for daily readability, but keeps a fixed small loop budget and only a few texture reads. |
 | **Neuro Noise** | [`neuro_noise.glsl`](./neuro_noise.glsl) | A glowing web of fluid lines and soft intersections as the terminal background, ported from [Paper Design's "Neuro Noise"](https://shaders.paper.design/neuro-noise). 15 rotated, time-drifting octaves (zozuar's algorithm) form the structure; the pattern paints only the empty background, so glyphs stay crisp. |
 | **Anime Speed Lines** | [`anime_speed_lines.glsl`](./anime_speed_lines.glsl) | A manga power-up burst at the cursor. Each cursor change fires sharp, tapered speed lines radiating outward with a brief white focus flash and a slight dramatic edge vignette. Typing keeps the action-scene burst alive; idle terminals fade back to normal, and large cursor jumps are damped. |
+| **Paper Grain** | [`paper_grain.glsl`](./paper_grain.glsl) | A static, low-contrast paper/film grain plus a gentle warm vignette. The treatment is applied only to pixels close to the terminal background colour so glyphs stay crisp. One cheap hash, no motion, no cursor coupling. |
 
 > **About the Water Ripple "stateless" design.** Ghostty custom shaders are stateless (ShaderToy format) — the GPU carries no per-frame state, and only `iChannel0` (the terminal image) plus built-in uniforms are available. This shader builds its dynamic effect purely from `iTime` and `iTimeCursorChange` (the timestamp of the most recent cursor change, which fires per keystroke and is not retriggered by cursor blink). Because only the single latest keystroke is timestamped, at most one pebble wave train is active at a time; the ambient field plus the wave train's many rings provide the "interacting ripples" feel within that constraint. See the shader's header comment for the full explanation and the list of tunable knobs.
 
@@ -48,7 +49,7 @@ All shader implementations in this project were automatically learned and improv
 
    ```sh
    mkdir -p ~/.config/ghostty/shaders/
-   cp lex-ghostty-shaders/water_ripple.glsl lex-ghostty-shaders/water_caustic.glsl lex-ghostty-shaders/fire_embers.glsl lex-ghostty-shaders/matrix_rain.glsl lex-ghostty-shaders/cursor_sparks.glsl lex-ghostty-shaders/cursor_comet.glsl lex-ghostty-shaders/signal_pulse.glsl lex-ghostty-shaders/rune_wake.glsl lex-ghostty-shaders/frost_glass.glsl lex-ghostty-shaders/hologram_jitter.glsl lex-ghostty-shaders/kawaii_sparkles.glsl lex-ghostty-shaders/aurora_veil.glsl lex-ghostty-shaders/ink_bloom.glsl lex-ghostty-shaders/crt_phosphor_bloom.glsl lex-ghostty-shaders/dimensional_rupture.glsl lex-ghostty-shaders/neuro_noise.glsl lex-ghostty-shaders/anime_speed_lines.glsl ~/.config/ghostty/shaders/
+   cp lex-ghostty-shaders/water_ripple.glsl lex-ghostty-shaders/water_caustic.glsl lex-ghostty-shaders/fire_embers.glsl lex-ghostty-shaders/matrix_rain.glsl lex-ghostty-shaders/cursor_sparks.glsl lex-ghostty-shaders/cursor_comet.glsl lex-ghostty-shaders/signal_pulse.glsl lex-ghostty-shaders/rune_wake.glsl lex-ghostty-shaders/frost_glass.glsl lex-ghostty-shaders/hologram_jitter.glsl lex-ghostty-shaders/kawaii_sparkles.glsl lex-ghostty-shaders/aurora_veil.glsl lex-ghostty-shaders/ink_bloom.glsl lex-ghostty-shaders/crt_phosphor_bloom.glsl lex-ghostty-shaders/dimensional_rupture.glsl lex-ghostty-shaders/neuro_noise.glsl lex-ghostty-shaders/anime_speed_lines.glsl lex-ghostty-shaders/paper_grain.glsl ~/.config/ghostty/shaders/
    ```
 
 ## Enabling a shader in Ghostty
@@ -318,6 +319,18 @@ For **Anime Speed Lines**, the most useful knobs are:
 | `RAY_INNER_GAP`       | Clear radius around the cursor glyph before lines start.                              |
 | `FLASH_INTENSITY` / `FLASH_LIFE` | Brightness and duration of the focus-point flash.                          |
 | `VIGNETTE_STRENGTH`   | Dramatic edge darkening while the burst is live. `0` disables it.                     |
+
+For **Paper Grain**, the most useful knobs are:
+
+| Knob                | What it controls                                                                      |
+| ------------------- | ------------------------------------------------------------------------------------- |
+| `GRAIN_STRENGTH`    | Amplitude of the static paper/film grain. Lower = quieter texture.                    |
+| `GRAIN_SCALE`       | Hash cell size in pixels. `1` = per-pixel film grain; higher = coarser paper tooth.   |
+| `VIGNETTE_STRENGTH` | How strongly the edges darken toward the warm paper tone. `0` disables the vignette.  |
+| `BG_THRESHOLD`      | RGB distance from the reference background that still receives the paper treatment.   |
+| `USE_SAMPLED_BG`    | `1` samples an inset corner as the background colour; `0` uses `BACKGROUND_COLOR`.    |
+| `BACKGROUND_COLOR`  | Manual background colour used when `USE_SAMPLED_BG` is `0`.                           |
+| `VIGNETTE_WARM`     | Warm paper tint mixed in at the darkened edges.                                       |
 
 ## If you like this project
 

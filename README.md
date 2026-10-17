@@ -31,6 +31,7 @@ All shader implementations in this project were automatically learned and improv
 | **Anime Speed Lines** | [`anime_speed_lines.glsl`](./anime_speed_lines.glsl) | A manga power-up burst at the cursor. Each cursor change fires sharp, tapered speed lines radiating outward with a brief white focus flash and a slight dramatic edge vignette. Typing keeps the action-scene burst alive; idle terminals fade back to normal, and large cursor jumps are damped. |
 | **Paper Grain** | [`paper_grain.glsl`](./paper_grain.glsl) | A static, low-contrast paper/film grain plus a gentle warm vignette. The treatment is applied only to pixels close to the terminal background colour so glyphs stay crisp. One cheap hash, no motion, no cursor coupling. |
 | **Typing Heat** | [`typing_heat.glsl`](./typing_heat.glsl) | A quiet warm tint around the cursor that builds as typing speeds up. Heat is derived from `iTimeCursorChange` recency (the stateless proxy for recent/frequent cursor changes), then cools back to the unmodified terminal when idle. No distortion — glyphs stay crisp. Large cursor jumps are damped. |
+| **Dust Motes** | [`dust_motes.glsl`](./dust_motes.glsl) | Sparse floating dust motes as a subtle ambient overlay. A small fixed budget of soft discs drifts slowly over empty background only, so glyphs stay crisp. Always in motion via `iTime`, no cursor coupling, and no warp of the terminal image. |
 
 > **About the Water Ripple "stateless" design.** Ghostty custom shaders are stateless (ShaderToy format) — the GPU carries no per-frame state, and only `iChannel0` (the terminal image) plus built-in uniforms are available. This shader builds its dynamic effect purely from `iTime` and `iTimeCursorChange` (the timestamp of the most recent cursor change, which fires per keystroke and is not retriggered by cursor blink). Because only the single latest keystroke is timestamped, at most one pebble wave train is active at a time; the ambient field plus the wave train's many rings provide the "interacting ripples" feel within that constraint. See the shader's header comment for the full explanation and the list of tunable knobs.
 
@@ -50,7 +51,7 @@ All shader implementations in this project were automatically learned and improv
 
    ```sh
    mkdir -p ~/.config/ghostty/shaders/
-   cp lex-ghostty-shaders/water_ripple.glsl lex-ghostty-shaders/water_caustic.glsl lex-ghostty-shaders/fire_embers.glsl lex-ghostty-shaders/matrix_rain.glsl lex-ghostty-shaders/cursor_sparks.glsl lex-ghostty-shaders/cursor_comet.glsl lex-ghostty-shaders/signal_pulse.glsl lex-ghostty-shaders/rune_wake.glsl lex-ghostty-shaders/frost_glass.glsl lex-ghostty-shaders/hologram_jitter.glsl lex-ghostty-shaders/kawaii_sparkles.glsl lex-ghostty-shaders/aurora_veil.glsl lex-ghostty-shaders/ink_bloom.glsl lex-ghostty-shaders/crt_phosphor_bloom.glsl lex-ghostty-shaders/dimensional_rupture.glsl lex-ghostty-shaders/neuro_noise.glsl lex-ghostty-shaders/anime_speed_lines.glsl lex-ghostty-shaders/paper_grain.glsl lex-ghostty-shaders/typing_heat.glsl ~/.config/ghostty/shaders/
+   cp lex-ghostty-shaders/water_ripple.glsl lex-ghostty-shaders/water_caustic.glsl lex-ghostty-shaders/fire_embers.glsl lex-ghostty-shaders/matrix_rain.glsl lex-ghostty-shaders/cursor_sparks.glsl lex-ghostty-shaders/cursor_comet.glsl lex-ghostty-shaders/signal_pulse.glsl lex-ghostty-shaders/rune_wake.glsl lex-ghostty-shaders/frost_glass.glsl lex-ghostty-shaders/hologram_jitter.glsl lex-ghostty-shaders/kawaii_sparkles.glsl lex-ghostty-shaders/aurora_veil.glsl lex-ghostty-shaders/ink_bloom.glsl lex-ghostty-shaders/crt_phosphor_bloom.glsl lex-ghostty-shaders/dimensional_rupture.glsl lex-ghostty-shaders/neuro_noise.glsl lex-ghostty-shaders/anime_speed_lines.glsl lex-ghostty-shaders/paper_grain.glsl lex-ghostty-shaders/typing_heat.glsl lex-ghostty-shaders/dust_motes.glsl ~/.config/ghostty/shaders/
    ```
 
 ## Enabling a shader in Ghostty
@@ -345,6 +346,21 @@ For **Typing Heat**, the most useful knobs are:
 | `HEAT_CORE`           | Extra warmth in the very center of the heat area.                                     |
 | `HEAT_STRENGTH`       | Mix amount of the warm tint. Lower = quieter and more legible.                        |
 | `JUMP_DAMPING`        | How much large cursor jumps are reduced compared with local typing-style moves.       |
+
+For **Dust Motes**, the most useful knobs are:
+
+| Knob               | What it controls                                                                      |
+| ------------------ | ------------------------------------------------------------------------------------- |
+| `MOTE_COUNT`       | Fixed number of motes. Keep small (around 16–24) for daily-use GPU cost.              |
+| `DRIFT_SPEED`      | How quickly motes wander across the terminal. Lower = calmer air.                     |
+| `MOTE_SIZE`        | Soft-disc radius in height-normalized UV. Lower = finer specks.                       |
+| `MOTE_INTENSITY`   | Brightness added at each mote. Lower = quieter overlay.                               |
+| `PARALLAX`         | Depth-based speed and size spread. `0` = every mote drifts the same way.              |
+| `TWINKLE`          | Slow brightness breathing. `0` = steady motes.                                        |
+| `BG_THRESHOLD`     | RGB distance from the reference background that still receives motes.                 |
+| `USE_SAMPLED_BG`   | `1` samples an inset corner as the background colour; `0` uses `BACKGROUND_COLOR`.    |
+| `BACKGROUND_COLOR` | Manual background colour used when `USE_SAMPLED_BG` is `0`.                           |
+| `MOTE_TINT`        | Warm-white catchlight colour added by the motes.                                      |
 
 ## If you like this project
 

@@ -32,6 +32,7 @@ All shader implementations in this project were automatically learned and improv
 | **Paper Grain** | [`paper_grain.glsl`](./paper_grain.glsl) | A static, low-contrast paper/film grain plus a gentle warm vignette. The treatment is applied only to pixels close to the terminal background colour so glyphs stay crisp. One cheap hash, no motion, no cursor coupling. |
 | **Typing Heat** | [`typing_heat.glsl`](./typing_heat.glsl) | A quiet warm tint around the cursor that builds as typing speeds up. Heat is derived from `iTimeCursorChange` recency (the stateless proxy for recent/frequent cursor changes), then cools back to the unmodified terminal when idle. No distortion — glyphs stay crisp. Large cursor jumps are damped. |
 | **Edge Mist** | [`edge_mist.glsl`](./edge_mist.glsl) | Soft cool mist that gathers at the viewport edges and corners and clears toward the centre, so the working area stays readable. Cheap drifting value-noise texture, a gentle blue-grey tint, and optional tiny refraction only where the mist is strong. Always in motion, no cursor coupling. |
+| **Dust Motes** | [`dust_motes.glsl`](./dust_motes.glsl) | Sparse floating dust motes as a subtle ambient overlay. A small fixed budget of soft discs drifts slowly over empty background only, so glyphs stay crisp. Always in motion via `iTime`, no cursor coupling, and no warp of the terminal image. |
 
 > **About the Water Ripple "stateless" design.** Ghostty custom shaders are stateless (ShaderToy format) — the GPU carries no per-frame state, and only `iChannel0` (the terminal image) plus built-in uniforms are available. This shader builds its dynamic effect purely from `iTime` and `iTimeCursorChange` (the timestamp of the most recent cursor change, which fires per keystroke and is not retriggered by cursor blink). Because only the single latest keystroke is timestamped, at most one pebble wave train is active at a time; the ambient field plus the wave train's many rings provide the "interacting ripples" feel within that constraint. See the shader's header comment for the full explanation and the list of tunable knobs.
 
@@ -359,6 +360,21 @@ For **Edge Mist**, the most useful knobs are:
 | `MIST_SCALE`        | Size of the drifting wisps. Lower = broader fog; higher = finer texture.              |
 | `DRIFT_SPEED`       | How quickly the mist texture crawls. Keep low for a barely-moving ambient look.       |
 | `REFRACTION`        | Terminal lookup offset in thick mist. `0` keeps a single unwarped sample everywhere.  |
+
+For **Dust Motes**, the most useful knobs are:
+
+| Knob               | What it controls                                                                      |
+| ------------------ | ------------------------------------------------------------------------------------- |
+| `MOTE_COUNT`       | Fixed number of motes. Keep small (around 16–24) for daily-use GPU cost.              |
+| `DRIFT_SPEED`      | How quickly motes wander across the terminal. Lower = calmer air.                     |
+| `MOTE_SIZE`        | Soft-disc radius in height-normalized UV. Lower = finer specks.                       |
+| `MOTE_INTENSITY`   | Brightness added at each mote. Lower = quieter overlay.                               |
+| `PARALLAX`         | Depth-based speed and size spread. `0` = every mote drifts the same way.              |
+| `TWINKLE`          | Slow brightness breathing. `0` = steady motes.                                        |
+| `BG_THRESHOLD`     | RGB distance from the reference background that still receives motes.                 |
+| `USE_SAMPLED_BG`   | `1` samples an inset corner as the background colour; `0` uses `BACKGROUND_COLOR`.    |
+| `BACKGROUND_COLOR` | Manual background colour used when `USE_SAMPLED_BG` is `0`.                           |
+| `MOTE_TINT`        | Warm-white catchlight colour added by the motes.                                      |
 
 ## If you like this project
 
